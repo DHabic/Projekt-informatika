@@ -5,7 +5,7 @@ import pygame
 
 ekran   = 640,480
 
-# Object dimensions
+#stalne dimenzije
 Kwidth   = 60
 Kheight  = 15
 Pwidth  = 60
@@ -17,17 +17,16 @@ Max_P_X = ekran[0] - Pwidth
 Max_B_X  = ekran[0] - Premer
 Max_B_Y   = ekran[1] - Premer
 
-# plošček Y coordinate
+# y koordinata ploščka
 P_Y = ekran[1] - Pheight - 10
 
-# Color constants
+#barve
 Ozadje = (220,220,220)
 ČRNA = (0,0,0)
 MODRA  = (0,0,255)
 BarvaKock = (255,20,147)
 
 # stanje
-#  constants
 Stanje0 = 0
 Stanje1 = 1
 Stanje2 = 2
@@ -68,7 +67,7 @@ class Igra:
     def create_kocke(self):
         y_ofs = 35
         self.kocke = []
-        for i in range(7):
+        for i in range(8):
             x_ofs = 35
             for j in range(8):
                 self.kocke.append(pygame.Rect(x_ofs,y_ofs,Kwidth, Kheight))
@@ -159,7 +158,7 @@ class Igra:
         
             
     def main(self):
-        while 1:            
+        while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -186,15 +185,15 @@ class Igra:
                 
             self.draw_kocke()
 
-            # Draw plošček
+            # Nariš plošček
             pygame.draw.rect(self.screen, MODRA, self.plošček)
 
-            # Draw žoga
+            # Nariš žogo
             pygame.draw.circle(self.screen, ČRNA, (self.žoga.left + Polmer, self.žoga.top + Polmer), Polmer)
 
             self.show_Statistika()
 
             pygame.display.flip()
 
-if __name__ == "__main__":
-    Igra().main()
+
+Igra().main()
