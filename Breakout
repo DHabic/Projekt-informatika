@@ -1,0 +1,198 @@
+import sys
+import pygame
+
+ekran   = 640,480
+
+# Object dimensions
+Kwidth   = 60
+Kheight  = 15
+Pwidth  = 60
+Pheight = 12
+Premer = 16
+Polmer   = Premer//2
+
+Max_P_X = ekran[0] - Pwidth
+Max_B_X  = ekran[0] - Premer
+Max_B_Y   = ekran[1] - Premer
+
+# plošček Y coordinate
+P_Y = ekran[1] - Pheight - 10
+
+# Color constants
+Ozadje = (220,220,220)
+ČRNA = (0,0,0)
+MODRA  = (0,0,255)
+BarvaKock = (255,20,147)
+
+# stanje
+#  constants
+Stanje0 = 0
+Stanje1 = 1
+Stanje2 = 2
+Stanje3 = 3
+
+class Igra:
+
+    def __init__(self):
+        pygame.init()
+        
+        self.screen = pygame.display.set_mode(ekran)
+        pygame.display.set_caption("Breakout")
+        
+        self.clock = pygame.time.Clock()
+
+        if pygame.font:
+            self.font = pygame.font.Font(None,30)
+        else:
+            self.font = None
+
+        self.init_igra()
+
+        
+    def init_igra(self):
+        self.Življenja = 3
+        self.Dosežek = 0
+        self.stanje\
+            = Stanje0
+
+        self.plošček   = pygame.Rect(300,P_Y,Pwidth,Pheight)
+        self.žoga     = pygame.Rect(300,P_Y - Premer, Premer, Premer)
+
+        self.žoga_vel = [5,-5]
+
+        self.create_kocke()
+        
+
+    def create_kocke(self):
+        y_ofs = 35
+        self.kocke = []
+        for i in range(7):
+            x_ofs = 35
+            for j in range(8):
+                self.kocke.append(pygame.Rect(x_ofs,y_ofs,Kwidth, Kheight))
+                x_ofs += Kwidth + 10
+            y_ofs += Kheight + 5
+
+    def draw_kocke(self):
+        for kocka in self.kocke:
+            pygame.draw.rect(self.screen, BarvaKock, kocka)
+        
+    def check_input(self):
+        keys = pygame.key.get_pressed()
+        
+        if keys[pygame.K_LEFT]:
+            self.plošček.left -= 8
+            if self.plošček.left < 0:
+                self.plošček.left = 0
+
+        if keys[pygame.K_RIGHT]:
+            self.plošček.left += 8
+            if self.plošček.left > Max_P_X:
+                self.plošček.left = Max_P_X
+
+        if keys[pygame.K_SPACE] and self.stanje\
+                == Stanje0:
+            self.žoga_vel = [5,-5]
+            self.stanje\
+                = Stanje1
+        elif keys[pygame.K_RETURN] and (self.stanje
+                                            == Stanje3 or self.stanje
+            == Stanje2):
+            self.init_igra()
+
+    def move_žoga(self):
+        self.žoga.left += self.žoga_vel[0]
+        self.žoga.top  += self.žoga_vel[1]
+
+        if self.žoga.left <= 0:
+            self.žoga.left = 0
+            self.žoga_vel[0] = -self.žoga_vel[0]
+        elif self.žoga.left >= Max_B_X:
+            self.žoga.left = Max_B_X
+            self.žoga_vel[0] = -self.žoga_vel[0]
+        
+        if self.žoga.top < 0:
+            self.žoga.top = 0
+            self.žoga_vel[1] = -self.žoga_vel[1]
+        elif self.žoga.top >= Max_B_Y:
+            self.žoga.top = Max_B_Y
+            self.žoga_vel[1] = -self.žoga_vel[1]
+
+    def odbijanje(self):
+        for kocka in self.kocke:
+            if self.žoga.colliderect(kocka):
+                self.Dosežek += 3
+                self.žoga_vel[1] = -self.žoga_vel[1]
+                self.kocke.remove(kocka)
+                break
+
+        if len(self.kocke) == 0:
+            self.stanje\
+                = Stanje2
+            
+        if self.žoga.colliderect(self.plošček):
+            self.žoga.top = P_Y - Premer
+            self.žoga_vel[1] = -self.žoga_vel[1]
+        elif self.žoga.top > self.plošček.top:
+            self.Življenja -= 1
+            if self.Življenja > 0:
+                self.stanje\
+                    = Stanje0
+            else:
+                self.stanje\
+                    = Stanje3
+
+    def show_Statistika(self):
+        if self.font:
+            font_surface = self.font.render("Score: " + str(self.Dosežek) + " Lives: " + str(self.Življenja), False, ČRNA)
+            self.screen.blit(font_surface, (250,10))
+
+    def show_Sporočilo(self,message):
+        if self.font:
+            size = self.font.size(message)
+            font_surface = self.font.render(message,False, ČRNA)
+            x = (ekran[0] - size[0]) / 2
+            y = (ekran[1] - size[1]) / 2
+            self.screen.blit(font_surface, (x,y))
+        
+            
+    def main(self):
+        while 1:            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+
+            self.clock.tick(50)
+            self.screen.fill(Ozadje)
+            self.check_input()
+
+            if self.stanje\
+                    == Stanje1:
+                self.move_žoga()
+                self.odbijanje()
+            elif self.stanje\
+                    == Stanje0:
+                self.žoga.left = self.plošček.left + self.plošček.width / 2
+                self.žoga.top  = self.plošček.top - self.žoga.height
+                self.show_Sporočilo("Pritisni presledek, da iztreliš žogo")
+            elif self.stanje\
+                    == Stanje3:
+                self.show_Sporočilo("Konec igre. Klikni enter če želiš igrati ponovno")
+            elif self.stanje\
+                    == Stanje2:
+                self.show_Sporočilo("Zmagal si. Klikni enter če želiš igrati ponovno")
+                
+            self.draw_kocke()
+
+            # Draw plošček
+            pygame.draw.rect(self.screen, MODRA, self.plošček)
+
+            # Draw žoga
+            pygame.draw.circle(self.screen, ČRNA, (self.žoga.left + Polmer, self.žoga.top + Polmer), Polmer)
+
+            self.show_Statistika()
+
+            pygame.display.flip()
+
+if __name__ == "__main__":
+    Igra().main()
